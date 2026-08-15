@@ -5,7 +5,15 @@ import CalibrationModal from '../components/CalibrationModal';
 import { useMeasurements } from '../context/MeasurementsContext';
 
 export default function SettingsScreen() {
-  const { calibrationHz, setCalibrationHz } = useMeasurements();
+  const {
+    calibrationHz,
+    setCalibrationHz,
+    facing,
+    setFacing,
+    frontCalib,
+    backCalib,
+    resetCalibration,
+  } = useMeasurements();
   const [calibOpen, setCalibOpen] = useState(false);
   const [keepScreenOn, setKeepScreenOn] = useState(true);
 
@@ -13,6 +21,46 @@ export default function SettingsScreen() {
     <View style={styles.container}>
       <View style={styles.topBar}>
         <Text style={styles.title}>Settings</Text>
+      </View>
+
+      <TouchableOpacity
+        style={styles.row}
+        onPress={() => setFacing(facing === 'front' ? 'back' : 'front')}
+      >
+        <Ionicons name="camera-outline" size={20} color="#16A34A" style={styles.rowIcon} />
+        <View style={{ flex: 1 }}>
+          <Text style={styles.rowLabel}>Active Camera</Text>
+          <Text style={styles.rowSub}>{facing === 'front' ? 'Front Camera' : 'Back Camera'}</Text>
+        </View>
+        <Ionicons name="swap-horizontal" size={18} color="#8E8E93" />
+      </TouchableOpacity>
+
+      <View style={styles.row}>
+        <Ionicons name="options-outline" size={20} color="#16A34A" style={styles.rowIcon} />
+        <View style={{ flex: 1 }}>
+          <Text style={styles.rowLabel}>Front Camera Calibration</Text>
+          <Text style={styles.rowSub}>Gain factor: {frontCalib.toFixed(3)}x</Text>
+        </View>
+        <TouchableOpacity
+          style={styles.resetBtn}
+          onPress={() => resetCalibration('front')}
+        >
+          <Text style={styles.resetText}>Reset</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.row}>
+        <Ionicons name="options-outline" size={20} color="#16A34A" style={styles.rowIcon} />
+        <View style={{ flex: 1 }}>
+          <Text style={styles.rowLabel}>Back Camera Calibration</Text>
+          <Text style={styles.rowSub}>Gain factor: {backCalib.toFixed(3)}x</Text>
+        </View>
+        <TouchableOpacity
+          style={styles.resetBtn}
+          onPress={() => resetCalibration('back')}
+        >
+          <Text style={styles.resetText}>Reset</Text>
+        </TouchableOpacity>
       </View>
 
       <TouchableOpacity style={styles.row} onPress={() => setCalibOpen(true)}>
@@ -80,5 +128,12 @@ const styles = StyleSheet.create({
   rowIcon: { marginRight: 12 },
   rowLabel: { color: '#1C1C1E', fontSize: 15, fontWeight: '600' },
   rowSub: { color: '#6E6E73', fontSize: 12, marginTop: 2 },
+  resetBtn: {
+    backgroundColor: '#E5E5EA',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  resetText: { color: '#1C1C1E', fontSize: 12, fontWeight: '600' },
   footer: { color: '#8E8E93', fontSize: 12, textAlign: 'center', marginTop: 24 },
 });

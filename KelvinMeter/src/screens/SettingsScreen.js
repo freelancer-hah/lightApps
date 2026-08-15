@@ -4,7 +4,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useMeasurements } from '../context/MeasurementsContext';
 
 export default function SettingsScreen({ navigation }) {
-  const { calibrationOffsetK, flashCct } = useMeasurements();
+  const {
+    facing,
+    setFacing,
+    frontCalibOffsetK,
+    backCalibOffsetK,
+    resetCalibrationOffset,
+    flashCct,
+  } = useMeasurements();
   const [keepScreenOn, setKeepScreenOn] = useState(true);
 
   return (
@@ -13,11 +20,51 @@ export default function SettingsScreen({ navigation }) {
         <Text style={styles.title}>Settings</Text>
       </View>
 
+      <TouchableOpacity
+        style={styles.row}
+        onPress={() => setFacing(facing === 'front' ? 'back' : 'front')}
+      >
+        <Ionicons name="camera-outline" size={20} color="#E64A19" style={styles.rowIcon} />
+        <View style={{ flex: 1 }}>
+          <Text style={styles.rowLabel}>Active Camera</Text>
+          <Text style={styles.rowSub}>{facing === 'front' ? 'Front Camera' : 'Back Camera'}</Text>
+        </View>
+        <Ionicons name="swap-horizontal" size={18} color="#8E8E93" />
+      </TouchableOpacity>
+
+      <View style={styles.row}>
+        <Ionicons name="options-outline" size={20} color="#E64A19" style={styles.rowIcon} />
+        <View style={{ flex: 1 }}>
+          <Text style={styles.rowLabel}>Front Camera Offset</Text>
+          <Text style={styles.rowSub}>{frontCalibOffsetK > 0 ? '+' : ''}{Math.round(frontCalibOffsetK)}K</Text>
+        </View>
+        <TouchableOpacity
+          style={styles.resetBtn}
+          onPress={() => resetCalibrationOffset('front')}
+        >
+          <Text style={styles.resetText}>Reset</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.row}>
+        <Ionicons name="options-outline" size={20} color="#E64A19" style={styles.rowIcon} />
+        <View style={{ flex: 1 }}>
+          <Text style={styles.rowLabel}>Back Camera Offset</Text>
+          <Text style={styles.rowSub}>{backCalibOffsetK > 0 ? '+' : ''}{Math.round(backCalibOffsetK)}K</Text>
+        </View>
+        <TouchableOpacity
+          style={styles.resetBtn}
+          onPress={() => resetCalibrationOffset('back')}
+        >
+          <Text style={styles.resetText}>Reset</Text>
+        </TouchableOpacity>
+      </View>
+
       <TouchableOpacity style={styles.row} onPress={() => navigation.navigate('Calibration')}>
         <Ionicons name="options-outline" size={20} color="#E64A19" style={styles.rowIcon} />
         <View style={{ flex: 1 }}>
           <Text style={styles.rowLabel}>Calibration & Baseline</Text>
-          <Text style={styles.rowSub}>Offset: {Math.round(calibrationOffsetK)}K · Flash: {flashCct}K</Text>
+          <Text style={styles.rowSub}>Flash: {flashCct}K</Text>
         </View>
         <Ionicons name="chevron-forward" size={18} color="#8E8E93" />
       </TouchableOpacity>
@@ -68,5 +115,12 @@ const styles = StyleSheet.create({
   rowIcon: { marginRight: 12 },
   rowLabel: { color: '#1C1C1E', fontSize: 15, fontWeight: '600' },
   rowSub: { color: '#6E6E73', fontSize: 12, marginTop: 2 },
+  resetBtn: {
+    backgroundColor: '#E5E5EA',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  resetText: { color: '#1C1C1E', fontSize: 12, fontWeight: '600' },
   footer: { color: '#8E8E93', fontSize: 12, textAlign: 'center', marginTop: 24 },
 });

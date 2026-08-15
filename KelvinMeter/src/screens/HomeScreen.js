@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Alert } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
 import KelvinGauge from '../components/KelvinGauge';
@@ -14,8 +14,18 @@ export default function HomeScreen({ navigation }) {
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef(null);
   const [paused, setPaused] = useState(false);
+  const [knownKInput, setKnownKInput] = useState('5500');
 
-  const { calibrationOffsetK, flashCct, saveMeasurement } = useMeasurements();
+  const {
+    facing,
+    setFacing,
+    calibrationOffsetK,
+    saveCalibrationOffset,
+    resetCalibrationOffset,
+    flashCct,
+    saveMeasurement,
+  } = useMeasurements();
+
   const reading = useLiveColorTempMeter(cameraRef, { paused, calibrationOffsetK });
 
   const cct = reading.cct;
@@ -34,6 +44,28 @@ export default function HomeScreen({ navigation }) {
       wbLabel: wb?.label,
       gelLabel: gel.label,
     });
+  };
+
+  const handleCalibrateToTarget = () => {
+    const known = parseFloat(knownKInput);
+    if (isNaN(known) || known <= 0) {
+      Alert.alert('Invalid Target', 'Please enter a valid positive number for reference Kelvin value.');
+      return;
+    }
+    if (reading.cctRaw == null) {
+      Alert.alert('No Reading', 'Waiting for camera reading before calibrating...');
+      return;
+    }
+    const newOffset = known - reading.cctRaw;
+    saveCalibrationOffset(facing, newOffset);
+    Alert.alert(
+      'Calibrated!',
+      `${facing === 'front' ? 'Front' : 'Back'} camera calibration offset set to ${newOffset > 0 ? '+' : ''}${Math.round(newOffset)}K.`
+    );
+  };
+
+  const handleResetCalibration = () => {
+    resetCalibrationOffset(facing);
   };
 
   if (!permission) return <View style={styles.container} />;
@@ -62,12 +94,15 @@ export default function HomeScreen({ navigation }) {
           <Text style={styles.title} numberOfLines={1}>Color Temperature Meter</Text>
         </View>
         <View style={styles.topIcons}>
+          <TouchableOpacity onPress={() => setFacing((f) => (f === 'front' ? 'back' : 'front'))} style={{ marginRight: 14 }}>
+            <Ionicons name="camera-reverse-outline" size={22} color="#E64A19" />
+          </TouchableOpacity>
           <Ionicons name="ribbon-outline" size={20} color="#E64A19" style={{ marginRight: 14 }} />
           <Ionicons name="information-circle-outline" size={22} color="#E64A19" />
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 32 }}>
         <View style={styles.gaugeCard}>
           <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
             <Ionicons name="save-outline" size={18} color="#E64A19" />
@@ -93,6 +128,67 @@ export default function HomeScreen({ navigation }) {
           </Text>
         </View>
 
+        <View style={styles.sectionHeaderWrap}>
+          <Text style={styles.sectionHeader}>CAMERA CHOICE</Text>
+        </View>
+        <View style={styles.cameraToggleContainer}>
+          <TouchableOpacity
+            style={[styles.cameraToggleBtn, facing === 'front' && styles.cameraToggleBtnActive]}
+            onPress={() => setFacing('front')}
+          >
+            <Ionicons name="person-outline" size={16} color={facing === 'front' ? '#FFFFFF' : '#1C1C1E'} />
+            <Text style={[styles.cameraToggleText, facing === 'front' && styles.cameraToggleTextActive]}>
+              Front Camera
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.cameraToggleBtn, facing === 'back' && styles.cameraToggleBtnActive]}
+            onPress={() => setFacing('back')}
+          >
+            <Ionicons name="camera-outline" size={16} color={facing === 'back' ? '#FFFFFF' : '#1C1C1E'} />
+            <Text style={[styles.cameraToggleText, facing === 'back' && styles.cameraToggleTextActive]}>
+              Back Camera
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.sectionHeaderWrap}>
+          <Text style={styles.sectionHeader}>
+            KELVIN CALIBRATION ({facing === 'front' ? 'FRONT' : 'BACK'})
+          </Text>
+        </View>
+        <View style={styles.calibCard}>
+          <View style={styles.calibHeaderRow}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={styles.calibLabel}>Offset: </Text>
+              <Text style={styles.calibValue}>
+                {calibrationOffsetK > 0 ? '+' : ''}{Math.round(calibrationOffsetK)}K
+              </Text>
+            </View>
+            <TouchableOpacity style={styles.resetBtn} onPress={handleResetCalibration}>
+              <Text style={styles.resetBtnText}>Reset</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.calibActionRow}>
+            <View style={styles.calibInputWrap}>
+              <Text style={styles.calibSubLabel}>Known Light Temp (K):</Text>
+              <TextInput
+                style={styles.calibInput}
+                value={knownKInput}
+                onChangeText={setKnownKInput}
+                keyboardType="numeric"
+                placeholder="e.g. 5500"
+                placeholderTextColor="#999"
+              />
+            </View>
+            <TouchableOpacity style={styles.calibrateBtn} onPress={handleCalibrateToTarget}>
+              <Text style={styles.calibrateBtnText}>Calibrate</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         <View style={styles.card}>
           <Text style={styles.cardHeader}>Camera White Balance Preset</Text>
           <Text style={styles.recValue}>{wb ? wb.label : '—'}</Text>
@@ -108,9 +204,9 @@ export default function HomeScreen({ navigation }) {
         </View>
 
         <View style={styles.previewCard}>
-          <Text style={styles.previewLabel}>Live Camera Preview</Text>
+          <Text style={styles.previewLabel}>Live Camera Preview ({facing === 'front' ? 'Front' : 'Back'})</Text>
           <View style={styles.previewBox}>
-            <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} />
+            <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing={facing} />
             <View style={styles.centerTarget} />
           </View>
         </View>
@@ -169,6 +265,86 @@ const styles = StyleSheet.create({
   },
   cardHeader: { color: '#8E8E93', fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
   duvValue: { color: '#1C1C1E', fontSize: 13, fontWeight: '600', textAlign: 'center', marginTop: 4 },
+
+  sectionHeaderWrap: { marginHorizontal: 16, marginTop: 14, marginBottom: 4 },
+  sectionHeader: { color: '#8E8E93', fontSize: 12, fontWeight: '700', letterSpacing: 0.5 },
+
+  cameraToggleContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#E5E5EA',
+    borderRadius: 10,
+    padding: 3,
+    marginHorizontal: 14,
+  },
+  cameraToggleBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: 8,
+    gap: 6,
+  },
+  cameraToggleBtnActive: {
+    backgroundColor: '#E64A19',
+  },
+  cameraToggleText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1C1C1E',
+  },
+  cameraToggleTextActive: {
+    color: '#FFFFFF',
+  },
+
+  calibCard: {
+    marginHorizontal: 14,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
+  calibHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  calibLabel: { color: '#1C1C1E', fontSize: 14, fontWeight: '600' },
+  calibValue: { color: '#E64A19', fontSize: 16, fontWeight: '800' },
+  resetBtn: {
+    backgroundColor: '#E5E5EA',
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 6,
+  },
+  resetBtnText: { color: '#1C1C1E', fontSize: 12, fontWeight: '600' },
+
+  calibActionRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 10,
+  },
+  calibInputWrap: { flex: 1 },
+  calibSubLabel: { color: '#6E6E73', fontSize: 12, marginBottom: 4 },
+  calibInput: {
+    backgroundColor: '#F2F2F7',
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    fontSize: 14,
+    color: '#1C1C1E',
+  },
+  calibrateBtn: {
+    backgroundColor: '#E64A19',
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+    borderRadius: 8,
+  },
+  calibrateBtnText: { color: '#FFFFFF', fontSize: 13, fontWeight: '700' },
 
   recValue: { color: '#E64A19', fontSize: 18, fontWeight: '800', marginTop: 6 },
   recSub: { color: '#6E6E73', fontSize: 12, marginTop: 2, lineHeight: 16 },

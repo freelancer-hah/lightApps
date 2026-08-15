@@ -17,7 +17,7 @@ function withTimeout(promise, ms = 1500) {
   });
 }
 
-export function useLiveFlickerMeter(cameraRef, { calibrationHz = 120, calibrationRate = 8500, paused = false } = {}) {
+export function useLiveFlickerMeter(cameraRef, { calibrationHz = 120, calibrationRate = 8500, calibrationFactor = 1.0, paused = false } = {}) {
   const [percent, setPercent] = useState(null);
   const [frequency, setFrequency] = useState(null);
   const rawSamplesRef = useRef([]);
@@ -32,7 +32,7 @@ export function useLiveFlickerMeter(cameraRef, { calibrationHz = 120, calibratio
       const samples = await withTimeout(sampleBrightness(cameraRef), 2000);
       if (samples && samples.length >= 8) {
         rawSamplesRef.current = samples;
-        const pct = computeFlickerPercent(samples);
+        const pct = computeFlickerPercent(samples, calibrationFactor);
         const freq = estimateFrequency(samples, calibrationHz, calibrationRate);
         setPercent(pct);
         setFrequency(freq);
@@ -42,7 +42,7 @@ export function useLiveFlickerMeter(cameraRef, { calibrationHz = 120, calibratio
     } finally {
       loopRef.current = setTimeout(sampleLoop, 700);
     }
-  }, [paused, cameraRef, calibrationHz, calibrationRate]);
+  }, [paused, cameraRef, calibrationHz, calibrationRate, calibrationFactor]);
 
   useEffect(() => {
     sampleLoop();

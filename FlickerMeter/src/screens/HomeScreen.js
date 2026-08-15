@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Alert } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -15,13 +15,51 @@ export default function HomeScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef(null);
   const [calibOpen, setCalibOpen] = useState(false);
+  const [targetPercentInput, setTargetPercentInput] = useState('25');
 
-  const { calibrationHz, calibrationRate, calibrateK, saveMeasurement } = useMeasurements();
-  const { percent, frequency, risk, rawSamples } = useLiveFlickerMeter(cameraRef, { calibrationHz, calibrationRate });
+  const {
+    calibrationHz,
+    calibrationRate,
+    calibrateK,
+    saveMeasurement,
+    facing,
+    setFacing,
+    calibrationFactor,
+    saveCalibration,
+    resetCalibration,
+  } = useMeasurements();
+
+  const { percent, frequency, risk, rawSamples } = useLiveFlickerMeter(cameraRef, {
+    calibrationHz,
+    calibrationRate,
+    calibrationFactor,
+  });
 
   const handleSave = () => {
     if (percent == null) return;
     saveMeasurement({ percent, frequency, riskLabel: risk.label, calibrationHz });
+  };
+
+  const handleCalibrateToTarget = () => {
+    const targetVal = parseFloat(targetPercentInput);
+    if (isNaN(targetVal) || targetVal <= 0) {
+      Alert.alert('Invalid Target', 'Please enter a valid positive number for target flicker percentage.');
+      return;
+    }
+    if (!percent || percent <= 0) {
+      Alert.alert('No Reading', 'Waiting for camera reading before calibrating...');
+      return;
+    }
+    const newFactor = (calibrationFactor * targetVal) / percent;
+    saveCalibration(facing, newFactor);
+    Alert.alert(
+      'Calibrated!',
+      `${facing === 'front' ? 'Front' : 'Back'} camera calibration factor set to ${(Math.round(newFactor * 1000) / 1000).toFixed(3)}x.`
+    );
+  };
+
+  const handleResetCalibration = () => {
+    resetCalibration(facing);
   };
 
   if (!permission) return <View style={styles.container} />;
@@ -50,12 +88,15 @@ export default function HomeScreen() {
           <Text style={styles.title}>Flicker Meter</Text>
         </View>
         <View style={styles.topIcons}>
-          <Ionicons name="ribbon-outline" size={22} color="#16A34A" style={{ marginRight: 16 }} />
+          <TouchableOpacity onPress={() => setFacing((f) => (f === 'front' ? 'back' : 'front'))} style={{ marginRight: 14 }}>
+            <Ionicons name="camera-reverse-outline" size={24} color="#16A34A" />
+          </TouchableOpacity>
+          <Ionicons name="ribbon-outline" size={22} color="#16A34A" style={{ marginRight: 14 }} />
           <Ionicons name="information-circle-outline" size={24} color="#16A34A" />
         </View>
       </View>
 
-      <View style={styles.content}>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
         <View style={styles.gaugeCard}>
           <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
             <Ionicons name="save-outline" size={20} color="#16A34A" />
@@ -82,13 +123,72 @@ export default function HomeScreen() {
 
         <WaveExplainer message={risk.message || 'Point the camera at an evenly-lit surface to begin.'} riskLabel={risk.label} />
 
-        <View style={styles.previewCard}>
-          <Text style={styles.previewLabel}>Live Preview</Text>
-          <View style={styles.previewBox}>
-            <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} />
+        <View style={styles.sectionHeaderWrap}>
+          <Text style={styles.sectionHeader}>CAMERA CHOICE</Text>
+        </View>
+        <View style={styles.cameraToggleContainer}>
+          <TouchableOpacity
+            style={[styles.cameraToggleBtn, facing === 'front' && styles.cameraToggleBtnActive]}
+            onPress={() => setFacing('front')}
+          >
+            <Ionicons name="person-outline" size={16} color={facing === 'front' ? '#FFFFFF' : '#1C1C1E'} />
+            <Text style={[styles.cameraToggleText, facing === 'front' && styles.cameraToggleTextActive]}>
+              Front Camera
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.cameraToggleBtn, facing === 'back' && styles.cameraToggleBtnActive]}
+            onPress={() => setFacing('back')}
+          >
+            <Ionicons name="camera-outline" size={16} color={facing === 'back' ? '#FFFFFF' : '#1C1C1E'} />
+            <Text style={[styles.cameraToggleText, facing === 'back' && styles.cameraToggleTextActive]}>
+              Back Camera
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.sectionHeaderWrap}>
+          <Text style={styles.sectionHeader}>
+            FLICKER CALIBRATION ({facing === 'front' ? 'FRONT' : 'BACK'})
+          </Text>
+        </View>
+        <View style={styles.calibCard}>
+          <View style={styles.calibHeaderRow}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={styles.calibLabel}>Gain Factor: </Text>
+              <Text style={styles.calibValue}>{calibrationFactor.toFixed(3)}x</Text>
+            </View>
+            <TouchableOpacity style={styles.resetBtn} onPress={handleResetCalibration}>
+              <Text style={styles.resetBtnText}>Reset</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.calibActionRow}>
+            <View style={styles.calibInputWrap}>
+              <Text style={styles.calibSubLabel}>Physical Meter Reading (%):</Text>
+              <TextInput
+                style={styles.calibInput}
+                value={targetPercentInput}
+                onChangeText={setTargetPercentInput}
+                keyboardType="numeric"
+                placeholder="e.g. 25"
+                placeholderTextColor="#999"
+              />
+            </View>
+            <TouchableOpacity style={styles.calibrateBtn} onPress={handleCalibrateToTarget}>
+              <Text style={styles.calibrateBtnText}>Calibrate</Text>
+            </TouchableOpacity>
           </View>
         </View>
-      </View>
+
+        <View style={styles.previewCard}>
+          <Text style={styles.previewLabel}>Live Preview ({facing === 'front' ? 'Front' : 'Back'})</Text>
+          <View style={styles.previewBox}>
+            <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing={facing} />
+          </View>
+        </View>
+      </ScrollView>
 
       <CalibrationModal
         visible={calibOpen}
@@ -123,7 +223,6 @@ const styles = StyleSheet.create({
 
   content: {
     flex: 1,
-    paddingBottom: 16,
   },
 
   gaugeCard: {
@@ -147,7 +246,87 @@ const styles = StyleSheet.create({
   calibText: { color: '#6E6E73', fontSize: 15, fontWeight: '600' },
   freqValue: { color: '#8E8E93', fontSize: 12, marginTop: 2, marginBottom: 6 },
 
-  previewCard: { marginHorizontal: 14, marginTop: 8, flex: 1 },
+  sectionHeaderWrap: { marginHorizontal: 16, marginTop: 18, marginBottom: 6 },
+  sectionHeader: { color: '#8E8E93', fontSize: 12, fontWeight: '700', letterSpacing: 0.5 },
+
+  cameraToggleContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#E5E5EA',
+    borderRadius: 10,
+    padding: 3,
+    marginHorizontal: 14,
+  },
+  cameraToggleBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: 8,
+    gap: 6,
+  },
+  cameraToggleBtnActive: {
+    backgroundColor: '#16A34A',
+  },
+  cameraToggleText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1C1C1E',
+  },
+  cameraToggleTextActive: {
+    color: '#FFFFFF',
+  },
+
+  calibCard: {
+    marginHorizontal: 14,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+  },
+  calibHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  calibLabel: { color: '#1C1C1E', fontSize: 14, fontWeight: '600' },
+  calibValue: { color: '#16A34A', fontSize: 16, fontWeight: '800' },
+  resetBtn: {
+    backgroundColor: '#E5E5EA',
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 6,
+  },
+  resetBtnText: { color: '#1C1C1E', fontSize: 12, fontWeight: '600' },
+
+  calibActionRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 10,
+  },
+  calibInputWrap: { flex: 1 },
+  calibSubLabel: { color: '#6E6E73', fontSize: 12, marginBottom: 4 },
+  calibInput: {
+    backgroundColor: '#F2F2F7',
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    fontSize: 14,
+    color: '#1C1C1E',
+  },
+  calibrateBtn: {
+    backgroundColor: '#16A34A',
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+    borderRadius: 8,
+  },
+  calibrateBtnText: { color: '#FFFFFF', fontSize: 13, fontWeight: '700' },
+
+  previewCard: { marginHorizontal: 14, marginTop: 18, height: 200 },
   previewLabel: { color: '#6E6E73', fontSize: 12, fontWeight: '600', marginBottom: 4 },
   previewBox: { flex: 1, borderRadius: 12, overflow: 'hidden', backgroundColor: '#000' },
 });

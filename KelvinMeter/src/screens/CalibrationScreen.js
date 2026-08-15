@@ -8,7 +8,16 @@ import { useMeasurements } from '../context/MeasurementsContext';
 export default function CalibrationScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef(null);
-  const { calibrationOffsetK, setCalibrationOffsetK, flashCct, setFlashCct } = useMeasurements();
+  const {
+    facing,
+    setFacing,
+    calibrationOffsetK,
+    saveCalibrationOffset,
+    resetCalibrationOffset,
+    flashCct,
+    setFlashCct,
+  } = useMeasurements();
+
   const reading = useLiveColorTempMeter(cameraRef, { calibrationOffsetK: 0 });
 
   const [knownK, setKnownK] = useState('5500');
@@ -17,7 +26,7 @@ export default function CalibrationScreen() {
   const applyCalibration = () => {
     const known = parseFloat(knownK);
     if (isNaN(known) || reading.cctRaw == null) return;
-    setCalibrationOffsetK(known - reading.cctRaw);
+    saveCalibrationOffset(facing, known - reading.cctRaw);
   };
 
   const applyFlashCct = () => {
@@ -41,23 +50,48 @@ export default function CalibrationScreen() {
     <View style={styles.container}>
       <View style={styles.topBar}>
         <Text style={styles.title}>Calibration</Text>
+        <TouchableOpacity onPress={() => setFacing((f) => (f === 'front' ? 'back' : 'front'))}>
+          <Ionicons name="camera-reverse-outline" size={22} color="#E64A19" />
+        </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 60 }}>
+        <View style={styles.cameraToggleContainer}>
+          <TouchableOpacity
+            style={[styles.cameraToggleBtn, facing === 'front' && styles.cameraToggleBtnActive]}
+            onPress={() => setFacing('front')}
+          >
+            <Ionicons name="person-outline" size={16} color={facing === 'front' ? '#FFFFFF' : '#1C1C1E'} />
+            <Text style={[styles.cameraToggleText, facing === 'front' && styles.cameraToggleTextActive]}>
+              Front Camera
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.cameraToggleBtn, facing === 'back' && styles.cameraToggleBtnActive]}
+            onPress={() => setFacing('back')}
+          >
+            <Ionicons name="camera-outline" size={16} color={facing === 'back' ? '#FFFFFF' : '#1C1C1E'} />
+            <Text style={[styles.cameraToggleText, facing === 'back' && styles.cameraToggleTextActive]}>
+              Back Camera
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.previewCard}>
-          <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} />
+          <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing={facing} />
         </View>
 
         <View style={styles.rawBlock}>
-          <Text style={styles.rawLabel}>Current raw reading</Text>
+          <Text style={styles.rawLabel}>Current raw reading ({facing === 'front' ? 'Front' : 'Back'})</Text>
           <Text style={styles.rawValue}>
             {reading.cctRaw != null ? `${Math.round(reading.cctRaw)}K` : 'Reading...'}
           </Text>
         </View>
 
-        <Text style={styles.sectionTitle}>Calibrate Against a Known Source</Text>
+        <Text style={styles.sectionTitle}>Calibrate Against a Known Source ({facing === 'front' ? 'Front' : 'Back'})</Text>
         <Text style={styles.sectionHint}>
-          Aim the camera at a white surface lit by a light source of known color temperature, then enter its true Kelvin value.
+          Aim the selected camera at a white surface lit by a light source of known color temperature, then enter its true Kelvin value.
         </Text>
 
         <View style={styles.rowInput}>
@@ -75,8 +109,10 @@ export default function CalibrationScreen() {
         </View>
 
         {calibrationOffsetK !== 0 && (
-          <TouchableOpacity style={styles.resetBtn} onPress={() => setCalibrationOffsetK(0)}>
-            <Text style={styles.resetText}>Reset Calibration Offset (currently {calibrationOffsetK > 0 ? '+' : ''}{Math.round(calibrationOffsetK)}K)</Text>
+          <TouchableOpacity style={styles.resetBtn} onPress={() => resetCalibrationOffset(facing)}>
+            <Text style={styles.resetText}>
+              Reset {facing === 'front' ? 'Front' : 'Back'} Camera Offset (currently {calibrationOffsetK > 0 ? '+' : ''}{Math.round(calibrationOffsetK)}K)
+            </Text>
           </TouchableOpacity>
         )}
 
@@ -110,10 +146,49 @@ const styles = StyleSheet.create({
   permissionButton: { backgroundColor: '#E64A19', paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8 },
   permissionButtonText: { color: '#FFFFFF', fontWeight: '700' },
 
-  topBar: { paddingTop: 54, paddingBottom: 14, paddingHorizontal: 20, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E5EA' },
+  topBar: {
+    paddingTop: 54,
+    paddingBottom: 14,
+    paddingHorizontal: 20,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5EA',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   title: { color: '#1C1C1E', fontSize: 20, fontWeight: '800' },
 
-  previewCard: { marginHorizontal: 16, marginTop: 16, height: 160, borderRadius: 12, overflow: 'hidden', backgroundColor: '#000000' },
+  cameraToggleContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#E5E5EA',
+    borderRadius: 10,
+    padding: 3,
+    marginHorizontal: 16,
+    marginTop: 16,
+  },
+  cameraToggleBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: 8,
+    gap: 6,
+  },
+  cameraToggleBtnActive: {
+    backgroundColor: '#E64A19',
+  },
+  cameraToggleText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1C1C1E',
+  },
+  cameraToggleTextActive: {
+    color: '#FFFFFF',
+  },
+
+  previewCard: { marginHorizontal: 16, marginTop: 12, height: 160, borderRadius: 12, overflow: 'hidden', backgroundColor: '#000000' },
   rawBlock: { alignItems: 'center', marginTop: 12 },
   rawLabel: { color: '#8E8E93', fontSize: 12 },
   rawValue: { color: '#1C1C1E', fontSize: 24, fontWeight: '800', marginTop: 2 },

@@ -17,7 +17,7 @@ export function detrend(samples, windowSize = 15) {
   return result;
 }
 
-export function computeFlickerPercent(samples) {
+export function computeFlickerPercent(samples, calibrationFactor = 1.0) {
   if (!samples || samples.length === 0) return 0;
   const detrended = detrend(samples);
   const maxD = Math.max(...detrended);
@@ -30,8 +30,9 @@ export function computeFlickerPercent(samples) {
   const estMax = meanRaw + maxD;
   if (estMax <= 0) return 0;
   
-  const percent = ((maxD - minD) / estMax) * 100;
-  return Math.min(100, Math.max(0, percent));
+  const rawPercent = ((maxD - minD) / estMax) * 100;
+  const calibrated = rawPercent * calibrationFactor;
+  return Math.min(100, Math.max(0, calibrated));
 }
 
 export function findDominantCycleCount(samples, minK = 1.0, maxK = 15.0, step = 0.05) {
