@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "ColorAssist",
+    "slug": "color-assist",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "backgroundColor": "#000000"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.example.colorassist",
+      "infoPlist": {
+        "NSCameraUsageDescription": "ColorAssist uses the camera to detect, sample, and identify colors in real time."
+      }
+    },
+    "android": {
+      "package": "com.example.colorassist",
+      "permissions": [
+        "CAMERA"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "ColorAssist uses the camera to detect, sample, and identify colors in real time."
+        }
+      ],
+      "expo-font"
+    ]
+  }
+}

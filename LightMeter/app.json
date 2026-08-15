@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "LightMeter",
+    "slug": "light-meter",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "backgroundColor": "#FFFFFF"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.example.lightmeter",
+      "infoPlist": {
+        "NSCameraUsageDescription": "LightMeter uses the camera to measure lux, EV, and exposure parameters."
+      }
+    },
+    "android": {
+      "package": "com.example.lightmeter",
+      "permissions": [
+        "CAMERA"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "LightMeter uses the camera to measure lux, EV, and exposure parameters."
+        }
+      ],
+      "expo-font"
+    ]
+  }
+}

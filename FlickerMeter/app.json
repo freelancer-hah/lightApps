@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "FlickerMeter",
+    "slug": "flicker-meter",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "backgroundColor": "#F2F2F7"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.example.flickermeter",
+      "infoPlist": {
+        "NSCameraUsageDescription": "FlickerMeter uses the camera to measure light flicker and frequency."
+      }
+    },
+    "android": {
+      "package": "com.example.flickermeter",
+      "permissions": [
+        "CAMERA"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "FlickerMeter uses the camera to measure light flicker and frequency."
+        }
+      ],
+      "expo-font"
+    ]
+  }
+}

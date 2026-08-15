@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "Spectrometer",
+    "slug": "spectrometer",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "backgroundColor": "#FFFFFF"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.example.spectrometer",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Spectrometer uses the camera to measure light spectrum, chromaticity, and color temperature."
+      }
+    },
+    "android": {
+      "package": "com.example.spectrometer",
+      "permissions": [
+        "CAMERA"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Spectrometer uses the camera to measure light spectrum, chromaticity, and color temperature."
+        }
+      ],
+      "expo-font"
+    ]
+  }
+}

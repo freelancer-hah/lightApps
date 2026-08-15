@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "PhotoFriend",
+    "slug": "photo-friend",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "backgroundColor": "#F2F2F7"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.example.photofriend",
+      "infoPlist": {
+        "NSCameraUsageDescription": "PhotoFriend uses the camera for light metering, exposure calculation, and scene preview."
+      }
+    },
+    "android": {
+      "package": "com.example.photofriend",
+      "permissions": [
+        "CAMERA"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "PhotoFriend uses the camera for light metering, exposure calculation, and scene preview."
+        }
+      ],
+      "expo-font"
+    ]
+  }
+}
