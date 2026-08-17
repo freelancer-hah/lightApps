@@ -23,6 +23,14 @@ export function useLiveFlickerMeter(cameraRef, { calibrationHz = 120, calibratio
   const rawSamplesRef = useRef([]);
   const loopRef = useRef(null);
 
+  const smoothPercentRef = useRef(null);
+  const smoothFreqRef = useRef(null);
+
+  useEffect(() => {
+    smoothPercentRef.current = null;
+    smoothFreqRef.current = null;
+  }, [calibrationFactor]);
+
   const sampleLoop = useCallback(async () => {
     if (paused || !cameraRef.current) {
       loopRef.current = setTimeout(sampleLoop, 500);
@@ -34,8 +42,25 @@ export function useLiveFlickerMeter(cameraRef, { calibrationHz = 120, calibratio
         rawSamplesRef.current = samples;
         const pct = computeFlickerPercent(samples, calibrationFactor);
         const freq = estimateFrequency(samples, calibrationHz, calibrationRate);
-        setPercent(pct);
-        setFrequency(freq);
+
+        // Exponential Moving Average (EMA) smoothing filter to prevent meter jumpiness
+        if (smoothPercentRef.current === null) {
+          smoothPercentRef.current = pct;
+        } else {
+          // 75% historical weight + 25% new sample weight for rock-solid stability
+          smoothPercentRef.current = smoothPercentRef.current * 0.75 + pct * 0.25;
+        }
+
+        if (freq != null) {
+          if (smoothFreqRef.current === null) {
+            smoothFreqRef.current = freq;
+          } else {
+            smoothFreqRef.current = smoothFreqRef.current * 0.8 + freq * 0.2;
+          }
+        }
+
+        setPercent(smoothPercentRef.current);
+        setFrequency(smoothFreqRef.current);
       }
     } catch (e) {
       console.log("Flicker capture error:", e);

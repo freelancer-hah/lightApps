@@ -20,17 +20,24 @@ export function detrend(samples, windowSize = 15) {
 export function computeFlickerPercent(samples, calibrationFactor = 1.0) {
   if (!samples || samples.length === 0) return 0;
   const detrended = detrend(samples);
-  const maxD = Math.max(...detrended);
-  const minD = Math.min(...detrended);
-  
+  const n = detrended.length;
+  if (n < 8) return 0;
+
+  // Trim top/bottom 5% outliers to reject single-line noise spikes
+  const sorted = [...detrended].sort((a, b) => a - b);
+  const p5 = sorted[Math.floor(n * 0.05)];
+  const p95 = sorted[Math.floor(n * 0.95)];
+  const peakToPeak = (p95 - p5) * 1.12; // Reconstruct full peak-to-peak amplitude for sinusoidal waves
+
+  const maxD = sorted[sorted.length - 1];
   const sumRaw = samples.reduce((a, b) => a + b, 0);
   const meanRaw = sumRaw / samples.length;
   if (meanRaw <= 1) return 0;
-  
+
   const estMax = meanRaw + maxD;
   if (estMax <= 0) return 0;
-  
-  const rawPercent = ((maxD - minD) / estMax) * 100;
+
+  const rawPercent = (peakToPeak / estMax) * 100;
   const calibrated = rawPercent * calibrationFactor;
   return Math.min(100, Math.max(0, calibrated));
 }
