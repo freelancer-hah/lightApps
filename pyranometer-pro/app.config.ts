@@ -7,6 +7,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   version: "1.0.0",
   orientation: "portrait",
   userInterfaceStyle: "dark",
+  icon: "./assets/icon.png",
   scheme: "pyranometerpro",
   // Compatible with Expo Go SDK 54 on both iOS (iPhone) and Android!
   plugins: [
