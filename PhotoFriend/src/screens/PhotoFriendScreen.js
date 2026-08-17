@@ -187,6 +187,7 @@ export default function PhotoFriendScreen({ navigation }) {
                     ref={cameraRef}
                     style={StyleSheet.absoluteFill}
                     enableTorch={torchOn}
+                    animateShutter={false}
                   />
                 )}
 

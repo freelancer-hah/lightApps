@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "LSP.evo",
+    "slug": "lspevo-clone",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "backgroundColor": "#0B0B0C"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.example.lspevo",
+      "infoPlist": {
+        "NSCameraUsageDescription": "LSP.evo uses the camera to analyze light spectrum and color temperature."
+      }
+    },
+    "android": {
+      "package": "com.example.lspevo",
+      "permissions": [
+        "CAMERA"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "LSP.evo uses the camera to analyze light spectrum and color temperature."
+        }
+      ],
+      "expo-font"
+    ]
+  }
+}

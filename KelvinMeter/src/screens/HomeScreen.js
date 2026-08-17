@@ -102,15 +102,33 @@ export default function HomeScreen({ navigation }) {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 32 }}>
-        <View style={styles.gaugeCard}>
-          <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
-            <Ionicons name="save-outline" size={18} color="#E64A19" />
-            <Text style={styles.saveText}>Save</Text>
-          </TouchableOpacity>
+      <ScrollView contentContainerStyle={{ paddingBottom: 32 }} showsVerticalScrollIndicator={false}>
+        {/* Main Showcase Card: Camera View + Gauge Together in Middle */}
+        <View style={styles.mainShowcaseCard}>
+          <View style={styles.showcaseHeaderRow}>
+            <Text style={styles.showcaseTitle}>LIVE CAMERA & GAUGE</Text>
+            <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
+              <Ionicons name="save-outline" size={16} color="#E64A19" />
+              <Text style={styles.saveText}>Save</Text>
+            </TouchableOpacity>
+          </View>
 
-          <KelvinGauge cct={cct} size={300} />
+          {/* Integrated Live Camera View */}
+          <View style={styles.cameraBox}>
+            <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing={facing} animateShutter={false} />
+            <View style={styles.centerTarget} />
+            <View style={styles.cameraBadge}>
+              <View style={styles.liveDot} />
+              <Text style={styles.cameraBadgeText}>{facing === 'front' ? 'FRONT CAMERA' : 'BACK CAMERA'}</Text>
+            </View>
+          </View>
 
+          {/* Integrated Kelvin Gauge */}
+          <View style={styles.gaugeContainer}>
+            <KelvinGauge cct={cct} size={280} />
+          </View>
+
+          {/* CCT Readout */}
           <View style={styles.readout}>
             <Text style={styles.cctValue}>{cct != null ? `${cct} K` : '—'}</Text>
             <Text style={styles.miredValue}>
@@ -120,6 +138,7 @@ export default function HomeScreen({ navigation }) {
           </View>
         </View>
 
+        {/* All Remaining Sections Underneath */}
         <View style={styles.card}>
           <Text style={styles.cardHeader}>Green / Magenta Tint (Duv)</Text>
           <DuvBar duv={reading.duv} />
@@ -202,14 +221,6 @@ export default function HomeScreen({ navigation }) {
           <Text style={styles.recValue}>{gel.label}</Text>
           <Text style={styles.recSub}>{gel.description}</Text>
         </View>
-
-        <View style={styles.previewCard}>
-          <Text style={styles.previewLabel}>Live Camera Preview ({facing === 'front' ? 'Front' : 'Back'})</Text>
-          <View style={styles.previewBox}>
-            <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing={facing} />
-            <View style={styles.centerTarget} />
-          </View>
-        </View>
       </ScrollView>
     </View>
   );
@@ -236,21 +247,80 @@ const styles = StyleSheet.create({
   title: { color: '#E64A19', fontSize: 20, fontWeight: '800' },
   topIcons: { flexDirection: 'row', alignItems: 'center' },
 
-  gaugeCard: {
+  mainShowcaseCard: {
     marginHorizontal: 14,
     marginTop: 12,
     backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    paddingTop: 16,
-    paddingBottom: 16,
+    borderRadius: 20,
+    padding: 14,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#E5E5EA',
   },
-  saveBtn: { position: 'absolute', top: 12, right: 16, alignItems: 'center', zIndex: 2 },
-  saveText: { color: '#E64A19', fontSize: 11, marginTop: 2, fontWeight: '600' },
+  showcaseHeaderRow: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  showcaseTitle: { color: '#8E8E93', fontSize: 12, fontWeight: '700', letterSpacing: 0.5 },
+  saveBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 4, backgroundColor: '#FCEBE6', borderRadius: 12 },
+  saveText: { color: '#E64A19', fontSize: 12, fontWeight: '700' },
 
-  readout: { alignItems: 'center', marginTop: -10 },
+  cameraBox: {
+    width: '100%',
+    height: 170,
+    borderRadius: 14,
+    overflow: 'hidden',
+    backgroundColor: '#000000',
+    position: 'relative',
+    marginBottom: 8,
+  },
+  centerTarget: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    width: 60,
+    height: 60,
+    marginLeft: -30,
+    marginTop: -30,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.75)',
+    borderRadius: 8,
+  },
+  cameraBadge: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 6,
+  },
+  liveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#E64A19',
+  },
+  cameraBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.4,
+  },
+
+  gaugeContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: -4,
+  },
+
+  readout: { alignItems: 'center', marginTop: -6 },
   cctValue: { color: '#1C1C1E', fontSize: 36, fontWeight: '800' },
   miredValue: { color: '#8E8E93', fontSize: 13, marginTop: -2 },
 
@@ -348,20 +418,4 @@ const styles = StyleSheet.create({
 
   recValue: { color: '#E64A19', fontSize: 18, fontWeight: '800', marginTop: 6 },
   recSub: { color: '#6E6E73', fontSize: 12, marginTop: 2, lineHeight: 16 },
-
-  previewCard: { marginHorizontal: 14, marginTop: 10, height: 160 },
-  previewLabel: { color: '#8E8E93', fontSize: 12, fontWeight: '600', marginBottom: 4 },
-  previewBox: { flex: 1, borderRadius: 12, overflow: 'hidden', backgroundColor: '#000000', position: 'relative' },
-  centerTarget: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    width: 60,
-    height: 60,
-    marginLeft: -30,
-    marginTop: -30,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.7)',
-    borderRadius: 8,
-  },
 });

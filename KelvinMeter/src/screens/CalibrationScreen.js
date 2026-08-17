@@ -79,7 +79,7 @@ export default function CalibrationScreen() {
         </View>
 
         <View style={styles.previewCard}>
-          <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing={facing} />
+          <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing={facing} animateShutter={false} />
         </View>
 
         <View style={styles.rawBlock}>

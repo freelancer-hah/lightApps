@@ -157,6 +157,7 @@ export default function LiveScreen({ navigation }) {
           enableTorch={torchOn}
           facing="back"
           zoom={zoomValue}
+          animateShutter={false}
         />
         <View pointerEvents="none" style={[styles.crosshair, { left: crosshairLeft, top: crosshairTop, width: reticleSize, height: reticleSize }]}>
           <View style={[styles.crosshairCornerTL, { width: cornerSize, height: cornerSize }]} />

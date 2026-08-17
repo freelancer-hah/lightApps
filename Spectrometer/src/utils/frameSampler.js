@@ -18,6 +18,7 @@ export async function captureFrame(cameraRef, region = null) {
     skipProcessing: true,
     exif: true,
     base64: false,
+    shutterSound: false,
   });
 
   if (!photo?.uri || !photo.width || !photo.height) return null;

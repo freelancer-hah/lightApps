@@ -9,6 +9,7 @@ export async function sampleBrightness(cameraRef, regionSize = 0.35) {
     quality: 0.1,
     skipProcessing: false,
     base64: false,
+    shutterSound: false,
   });
   if (!photo?.uri || !photo.width || !photo.height) return null;
 

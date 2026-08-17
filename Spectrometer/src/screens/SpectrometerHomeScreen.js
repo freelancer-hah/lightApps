@@ -178,6 +178,7 @@ export default function SpectrometerHomeScreen({ navigation }) {
                 style={StyleSheet.absoluteFill}
                 facing={cameraFacing}
                 enableTorch={torchOn}
+                animateShutter={false}
               />
             )}
 

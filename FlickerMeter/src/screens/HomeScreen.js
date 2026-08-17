@@ -97,13 +97,30 @@ export default function HomeScreen() {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
-        <View style={styles.gaugeCard}>
-          <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
-            <Ionicons name="save-outline" size={20} color="#16A34A" />
-            <Text style={styles.saveText}>Save</Text>
-          </TouchableOpacity>
+        {/* Main Showcase Card: Camera View + Gauge Together in Middle */}
+        <View style={styles.mainShowcaseCard}>
+          <View style={styles.showcaseHeaderRow}>
+            <Text style={styles.showcaseTitle}>LIVE CAMERA & FLICKER GAUGE</Text>
+            <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
+              <Ionicons name="save-outline" size={18} color="#16A34A" />
+              <Text style={styles.saveText}>Save</Text>
+            </TouchableOpacity>
+          </View>
 
-          <FlickerGauge value={percent ?? 0} size={220} />
+          {/* Integrated Live Camera View */}
+          <View style={styles.cameraBox}>
+            <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing={facing} animateShutter={false} />
+            <View style={styles.centerTarget} />
+            <View style={styles.cameraBadge}>
+              <View style={styles.liveDot} />
+              <Text style={styles.cameraBadgeText}>{facing === 'front' ? 'FRONT CAMERA' : 'BACK CAMERA'}</Text>
+            </View>
+          </View>
+
+          {/* Integrated Flicker Gauge */}
+          <View style={styles.gaugeContainer}>
+            <FlickerGauge value={percent ?? 0} size={250} />
+          </View>
 
           <View style={styles.readout}>
             <Text style={styles.percentValue}>{percent != null ? `${percent.toFixed(0)}%` : '—'}</Text>
@@ -121,6 +138,7 @@ export default function HomeScreen() {
           <CalibrationBar />
         </View>
 
+        {/* All Remaining Sections Underneath */}
         <WaveExplainer message={risk.message || 'Point the camera at an evenly-lit surface to begin.'} riskLabel={risk.label} />
 
         <View style={styles.sectionHeaderWrap}>
@@ -181,13 +199,6 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
         </View>
-
-        <View style={styles.previewCard}>
-          <Text style={styles.previewLabel}>Live Preview ({facing === 'front' ? 'Front' : 'Back'})</Text>
-          <View style={styles.previewBox}>
-            <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing={facing} />
-          </View>
-        </View>
       </ScrollView>
 
       <CalibrationModal
@@ -225,20 +236,80 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  gaugeCard: {
+  mainShowcaseCard: {
     marginHorizontal: 14,
+    marginTop: 8,
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
-    paddingTop: 12,
-    paddingBottom: 12,
+    padding: 14,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#E5E5EA',
   },
-  saveBtn: { position: 'absolute', top: 12, right: 18, alignItems: 'center', zIndex: 2 },
-  saveText: { color: '#16A34A', fontSize: 11, marginTop: 2, fontWeight: '600' },
+  showcaseHeaderRow: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  showcaseTitle: { color: '#8E8E93', fontSize: 12, fontWeight: '700', letterSpacing: 0.5 },
+  saveBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 4, backgroundColor: '#DCFCE7', borderRadius: 12 },
+  saveText: { color: '#16A34A', fontSize: 12, fontWeight: '700' },
 
-  readout: { alignItems: 'center', marginTop: -20 },
+  cameraBox: {
+    width: '100%',
+    height: 170,
+    borderRadius: 14,
+    overflow: 'hidden',
+    backgroundColor: '#000000',
+    position: 'relative',
+    marginBottom: 8,
+  },
+  centerTarget: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    width: 60,
+    height: 60,
+    marginLeft: -30,
+    marginTop: -30,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.75)',
+    borderRadius: 8,
+  },
+  cameraBadge: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 6,
+  },
+  liveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#16A34A',
+  },
+  cameraBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.4,
+  },
+
+  gaugeContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: -4,
+  },
+
+  readout: { alignItems: 'center', marginTop: -14 },
   percentValue: { color: '#16A34A', fontSize: 34, fontWeight: '800' },
   percentLabel: { color: '#6E6E73', fontSize: 16, fontWeight: '700', marginTop: -6 },
 
@@ -325,8 +396,4 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   calibrateBtnText: { color: '#FFFFFF', fontSize: 13, fontWeight: '700' },
-
-  previewCard: { marginHorizontal: 14, marginTop: 18, height: 200 },
-  previewLabel: { color: '#6E6E73', fontSize: 12, fontWeight: '600', marginBottom: 4 },
-  previewBox: { flex: 1, borderRadius: 12, overflow: 'hidden', backgroundColor: '#000' },
 });

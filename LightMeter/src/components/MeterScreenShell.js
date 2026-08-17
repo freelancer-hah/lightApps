@@ -58,7 +58,7 @@ export default function MeterScreenShell({
       </View>
 
       <View style={[styles.cameraArea, { flex: cameraHeightRatio }]}>
-        <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing={facing} enableTorch={torchOn} />
+        <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing={facing} enableTorch={torchOn} animateShutter={false} />
         <View pointerEvents="none" style={styles.centerBox} />
       </View>
 
