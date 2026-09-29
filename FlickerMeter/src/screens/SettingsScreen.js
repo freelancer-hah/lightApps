@@ -87,15 +87,15 @@ export default function SettingsScreen() {
       </View>
 
       <View style={styles.row}>
-        <Ionicons name="document-text-outline" size={20} color="#16A34A" style={styles.rowIcon} />
-        <Text style={styles.rowLabel}>Privacy Policy</Text>
-      </View>
-      <View style={styles.row}>
-        <Ionicons name="document-outline" size={20} color="#16A34A" style={styles.rowIcon} />
-        <Text style={styles.rowLabel}>End User License Agreement</Text>
+        <Ionicons name="shield-checkmark-outline" size={20} color="#16A34A" style={styles.rowIcon} />
+        <View style={{ flex: 1 }}>
+          <Text style={styles.rowLabel}>APK Trial License</Text>
+          <Text style={styles.rowSub}>Validity: 4 Days Expiry System Active</Text>
+        </View>
+        <Text style={styles.trialBadge}>4 Days Trial</Text>
       </View>
 
-      <Text style={styles.footer}>Flicker Meter · v1.0.0</Text>
+      <Text style={styles.footer}>Flicker Meter · v1.0.0 (Trial Version)</Text>
 
       <CalibrationModal
         visible={calibOpen}
@@ -135,5 +135,14 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   resetText: { color: '#1C1C1E', fontSize: 12, fontWeight: '600' },
+  trialBadge: {
+    color: '#16A34A',
+    fontSize: 12,
+    fontWeight: '700',
+    backgroundColor: '#DCFCE7',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
   footer: { color: '#8E8E93', fontSize: 12, textAlign: 'center', marginTop: 24 },
 });
