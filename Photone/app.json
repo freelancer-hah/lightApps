@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "Photone",
+    "slug": "photone-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "backgroundColor": "#0F172A"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.lightapps.photone",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Photone uses the camera sensor to measure PPFD, DLI, Lux, and Color Temperature for plant lighting."
+      }
+    },
+    "android": {
+      "package": "com.lightapps.photone",
+      "permissions": [
+        "CAMERA"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Photone uses the camera sensor to measure PPFD, DLI, Lux, and Color Temperature for plant lighting."
+        }
+      ],
+      "expo-font"
+    ]
+  }
+}
